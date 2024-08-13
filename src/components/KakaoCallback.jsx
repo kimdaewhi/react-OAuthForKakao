@@ -5,6 +5,8 @@ import { useLocation } from 'react-router-dom';
 export default function KakaoCallback() {
     const [accessToken, setAccessToken] = useState(null);
     const [authCode, setAuthCode] = useState(null);
+    const [userInfo, setUserInfo] = useState(null);
+
     const location = useLocation();
 
     useEffect(() => {
@@ -26,9 +28,24 @@ export default function KakaoCallback() {
             });
             console.log('Access Token:', response.data);
             setAccessToken(response.data);
-            // Handle the response here, e.g., save token to state or local storage
+            getUserInfo(response.data.access_token); // 사용자 정보 조회
+
         } catch (error) {
             console.error('Failed to get access token:', error);
+        }
+    }
+
+    const getUserInfo = async (accessToken) => {
+        try {
+            const response = await axios.get('http://localhost:9000/auth_kakao/user_info', {
+                params: {
+                    access_token: accessToken
+                }
+            });
+            console.log('User Info:', response.data);
+            setUserInfo(response.data);
+        } catch (error) {
+            console.error('Failed to get user info:', error);
         }
     }
 
@@ -47,6 +64,16 @@ export default function KakaoCallback() {
                 </div>
             ) : (
                 <div>Loading Access Token...</div>
+            )}
+            <hr/>
+            {userInfo ? (
+                <div>
+                    <p>User ID: {userInfo.id}</p>
+                    <p>Nickname: {userInfo.properties.nickname}</p>
+                    <p>Email: {userInfo.kakao_account.email}</p>
+                </div>
+            ) : (
+                <div>Loading User Info...</div>
             )}
         </div>
     );
